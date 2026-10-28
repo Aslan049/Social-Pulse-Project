@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Ortam ve gizli bilgiler
+.env
+*.log
+
+# Backend
+backend/target/
+backend/build/
+*.class
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Python
+__pycache__/
+*.pyc
