@@ -1,11 +1,14 @@
-# SocialPulse ER Diyagramı
+# SocialPulse ER Diyagramı (Revizyon 2)
+
+Gün 5'te gönderi bazlı `posts` tablosu kaldırıldı, yerine hesap seviyesinde `metric_points` geldi.
+`upload_errors` tablosu V1'de oluşturuldu, Gün 9'da kullanılacak.
 
 ```mermaid
 erDiagram
     USERS ||--o{ UPLOAD_BATCHES : uploads
-    USERS ||--o{ POSTS : owns
+    USERS ||--o{ METRIC_POINTS : owns
     USERS ||--o{ REPORTS : generates
-    UPLOAD_BATCHES ||--o{ POSTS : contains
+    UPLOAD_BATCHES ||--o{ METRIC_POINTS : contains
     UPLOAD_BATCHES ||--o{ UPLOAD_ERRORS : has
 
     USERS {
@@ -34,24 +37,16 @@ erDiagram
         string message
         text raw_line
     }
-    POSTS {
+    METRIC_POINTS {
         bigint id PK
         bigint user_id FK
         bigint batch_id FK
         string platform
-        string external_id
-        timestamptz published_at
-        string content_preview
-        string post_type
-        int impressions
-        int reach
-        int likes
-        int comments
-        int shares
-        int saves
-        int clicks
-        int engagement_total
-        numeric engagement_rate
+        string metric
+        string granularity
+        date period_start
+        numeric value
+        timestamptz created_at
     }
     REPORTS {
         bigint id PK
@@ -61,3 +56,5 @@ erDiagram
         timestamptz created_at
     }
 ```
+
+`metric_points` benzersiz kısıtı: `(user_id, platform, metric, granularity, period_start)`.
