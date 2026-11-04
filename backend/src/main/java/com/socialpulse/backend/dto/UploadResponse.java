@@ -16,9 +16,16 @@ public record UploadResponse(
         int importedRows,
         int rejectedRows,
         Instant uploadedAt,
-        List<SheetSummary> sheets
+        List<SheetSummary> sheets,
+        List<String> ignoredSheets,
+        List<UploadIssue> issues
 ) {
     public static UploadResponse of(UploadBatch batch, List<SheetSummary> sheets) {
+        return of(batch, sheets, List.of(), List.of());
+    }
+
+    public static UploadResponse of(UploadBatch batch, List<SheetSummary> sheets,
+                                    List<String> ignoredSheets, List<UploadIssue> issues) {
         return new UploadResponse(
                 batch.getId(),
                 batch.getPlatform(),
@@ -28,6 +35,8 @@ public record UploadResponse(
                 batch.getImportedRows(),
                 batch.getRejectedRows(),
                 batch.getUploadedAt(),
-                sheets);
+                sheets,
+                ignoredSheets,
+                issues);
     }
 }
