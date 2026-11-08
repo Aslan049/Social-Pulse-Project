@@ -18,14 +18,16 @@ public record UploadResponse(
         Instant uploadedAt,
         List<SheetSummary> sheets,
         List<String> ignoredSheets,
+        List<String> ignoredColumns,
         List<UploadIssue> issues
 ) {
     public static UploadResponse of(UploadBatch batch, List<SheetSummary> sheets) {
-        return of(batch, sheets, List.of(), List.of());
+        return of(batch, sheets, List.of(), List.of(), List.of());
     }
 
     public static UploadResponse of(UploadBatch batch, List<SheetSummary> sheets,
-                                    List<String> ignoredSheets, List<UploadIssue> issues) {
+                                    List<String> ignoredSheets, List<String> ignoredColumns,
+                                    List<UploadIssue> issues) {
         return new UploadResponse(
                 batch.getId(),
                 batch.getPlatform(),
@@ -37,6 +39,7 @@ public record UploadResponse(
                 batch.getUploadedAt(),
                 sheets,
                 ignoredSheets,
+                ignoredColumns,
                 issues);
     }
 }

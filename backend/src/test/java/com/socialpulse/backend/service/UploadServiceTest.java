@@ -76,6 +76,7 @@ class UploadServiceTest {
                 List.of(point),
                 List.of(new ParseIssue("Ziyaretler", 3, "Geçersiz tarih: abc")),
                 List.of("Tüm Veriler"),
+                List.of("Aylık Özet: Bilinmeyen Sütun"),
                 2));
         assignIdOnSave();
         when(writer.upsertAll(eq(1L), eq(42L), eq(Platform.INSTAGRAM), anyList())).thenReturn(1);
@@ -89,6 +90,7 @@ class UploadServiceTest {
         assertEquals(1, response.importedRows());
         assertEquals(1, response.rejectedRows());
         assertEquals(List.of("Tüm Veriler"), response.ignoredSheets());
+        assertEquals(List.of("Aylık Özet: Bilinmeyen Sütun"), response.ignoredColumns());
         assertEquals(1, response.issues().size());
         assertEquals("Ziyaretler", response.issues().get(0).sheet());
     }
