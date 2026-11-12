@@ -34,6 +34,11 @@ public class UploadController {
         return uploadService.list(user.id());
     }
 
+    @GetMapping("/{id}")
+    public UploadResponse get(@AuthenticationPrincipal AuthenticatedUser user, @PathVariable Long id) {
+        return uploadService.get(user.id(), id);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal AuthenticatedUser user,
                                        @PathVariable Long id) {

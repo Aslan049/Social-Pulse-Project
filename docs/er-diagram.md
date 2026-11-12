@@ -1,7 +1,7 @@
-# SocialPulse ER Diyagramı (Revizyon 2)
+# SocialPulse ER Diyagramı (Revizyon 3)
 
 Gün 5'te gönderi bazlı `posts` tablosu kaldırıldı, yerine hesap seviyesinde `metric_points` geldi.
-`upload_errors` tablosu V1'de oluşturuldu, Gün 9'da kullanılacak.
+Gün 9'da `upload_errors` tablosuna `sheet` ve `severity` (ERROR, WARNING), `upload_batches` tablosuna `warning_count` eklendi.
 
 ```mermaid
 erDiagram
@@ -27,14 +27,17 @@ erDiagram
         int total_rows
         int imported_rows
         int rejected_rows
+        int warning_count
         timestamptz uploaded_at
     }
     UPLOAD_ERRORS {
         bigint id PK
         bigint batch_id FK
+        string sheet
         int row_number
         string field
         string message
+        string severity
         text raw_line
     }
     METRIC_POINTS {
@@ -58,3 +61,5 @@ erDiagram
 ```
 
 `metric_points` benzersiz kısıtı: `(user_id, platform, metric, granularity, period_start)`.
+Aynı dosya tekrar yüklenirse değer ve `batch_id` güncellenir; bu yüzden eski bir yüklemeyi silmek,
+sonradan aynı dönemleri güncelleyen yeni yüklemenin ölçümlerini silmez.

@@ -41,6 +41,9 @@ public class UploadBatch {
     @Column(name = "rejected_rows", nullable = false)
     private int rejectedRows;
 
+    @Column(name = "warning_count", nullable = false)
+    private int warningCount;
+
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private Instant uploadedAt;
 
