@@ -12,6 +12,9 @@ export default function AppLayout() {
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Panel
           </NavLink>
+          <NavLink to="/compare" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+            Karşılaştırma
+          </NavLink>
           <NavLink to="/upload" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Veri yükle
           </NavLink>

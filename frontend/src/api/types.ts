@@ -18,7 +18,7 @@ export type Metric = (typeof METRICS)[number]
 
 export type Granularity = 'DAY' | 'MONTH'
 export type UploadStatus = 'RECEIVED' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
-export type IssueSeverity = 'ERROR' | 'WARNING'
+export type IssueSeverity = 'ERROR' | 'WARNING' | 'INFO'
 
 export interface SheetSummary {
   name: string
@@ -55,6 +55,7 @@ export interface MetricSummary {
   platform: Platform
   metric: Metric
   granularity: Granularity
+  /** Geçerli (negatif olmayan) değeri olan dönem sayısı */
   periods: number
   total: number
   average: number
@@ -62,5 +63,65 @@ export interface MetricSummary {
   max: number
   firstPeriod: string
   lastPeriod: string
+  /** Kendi aralığında (ilk-son dönem) gözlenen oran: gerçek boşluk var mı? */
   coverage: number
+  internalMissing: number
+  /** Analiz penceresi: tüm platformların aralığının birleşimi */
+  windowStart: string
+  windowEnd: string
+  windowCoverage: number
+  /** Pencerenin başındaki, metrik başlamadan önceki dönemler (eksik veri olmayabilir) */
+  leadingMissing: number
+  trailingMissing: number
+  negativeCount: number
+}
+
+export type CellStatus = 'OK' | 'PARTIAL' | 'MISSING'
+
+export interface MonthCell {
+  month: string
+  value: number | null
+  coverage: number | null
+  status: CellStatus
+}
+
+export interface PlatformSeries {
+  platform: Platform
+  sourceGranularity: Granularity
+  cells: MonthCell[]
+  monthsWithData: number
+  missingMonths: string[]
+  partialMonths: string[]
+}
+
+export interface MetricComparison {
+  metric: Metric
+  platforms: PlatformSeries[]
+}
+
+export interface PlatformComparison {
+  windowStart: string | null
+  windowEnd: string | null
+  months: string[]
+  metrics: MetricComparison[]
+}
+
+export interface MonthlyChangeRow {
+  month: string
+  value: number | null
+  coverage: number | null
+  status: CellStatus
+  previousValue: number | null
+  changePercent: number | null
+  comparable: boolean
+  note: string | null
+}
+
+export interface MonthlyChange {
+  platform: Platform
+  metric: Metric
+  sourceGranularity: Granularity | null
+  windowStart: string | null
+  windowEnd: string | null
+  rows: MonthlyChangeRow[]
 }
