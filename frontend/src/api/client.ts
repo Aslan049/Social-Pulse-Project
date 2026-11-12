@@ -3,9 +3,11 @@ import axios from 'axios'
 export const TOKEN_KEY = 'socialpulse.token'
 export const UNAUTHORIZED_EVENT = 'socialpulse:unauthorized'
 
+// Content-Type bilerek ayarlanmaz: axios JSON gövdeler için application/json'u, FormData için sınır (boundary)
+// bilgisiyle multipart/form-data'yı kendisi belirler. Sabit bir application/json başlığı, FormData gövdesini
+// JSON'a çevirip dosya yüklemeyi bozar.
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080',
-  //headers: { 'Content-Type': 'application/json' },
 })
 
 // Her isteğe, varsa, saklanan JWT'yi ekler
