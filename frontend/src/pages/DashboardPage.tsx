@@ -4,7 +4,8 @@ import { fetchSummary } from '../api/analytics'
 import { getErrorMessage } from '../api/errors'
 import { PLATFORMS } from '../api/types'
 import type { MetricSummary, Platform } from '../api/types'
-import { formatNumber, formatPercent, formatPeriod } from '../utils/format'
+import { coverageNotes } from '../utils/coverage'
+import { formatDate, formatNumber, formatPercent, formatPeriod } from '../utils/format'
 import { GRANULARITY_LABELS, METRIC_LABELS, PLATFORM_LABELS } from '../utils/labels'
 
 export default function DashboardPage() {
@@ -35,8 +36,10 @@ export default function DashboardPage() {
     <div className="page">
       <h2>Panel</h2>
       <p className="muted">
-        Yüklediğiniz verilerin özeti. Kapsama, ilk ve son dönem arasında veri bulunan dönemlerin oranıdır; yüzde yüzün
-        altındaysa eksik dönemler vardır ve toplamlar bu nedenle düşük olabilir.
+        Yüklediğiniz verilerin özeti. Kapsama iki ayrı ölçüyle verilir: <strong>aralıkta</strong> (metriğin kendi ilk ve
+        son dönemi arasında boşluk var mı) ve <strong>pencerede</strong> (tüm platformların aralığının birleşimine
+        göre). Pencerenin başında eksik dönemler, metriğin o tarihte başlamasından kaynaklanabilir ve eksik veri
+        sayılmaz. Negatif değerler veri hatası sayılır ve istatistiklere dahil edilmez.
       </p>
 
       <div className="toolbar">
@@ -67,42 +70,66 @@ export default function DashboardPage() {
         </p>
       )}
       {rows !== null && rows.length > 0 && (
-        <div className="table-wrap">
-          <table className="data">
-            <thead>
-              <tr>
-                <th>Platform</th>
-                <th>Metrik</th>
-                <th>Ayrıntı</th>
-                <th>Dönem sayısı</th>
-                <th>Toplam</th>
-                <th>Ortalama</th>
-                <th>En düşük</th>
-                <th>En yüksek</th>
-                <th>Aralık</th>
-                <th>Kapsama</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={`${row.platform}-${row.metric}-${row.granularity}`}>
-                  <td>{PLATFORM_LABELS[row.platform]}</td>
-                  <td>{METRIC_LABELS[row.metric] ?? row.metric}</td>
-                  <td>{GRANULARITY_LABELS[row.granularity]}</td>
-                  <td>{formatNumber(row.periods)}</td>
-                  <td>{formatNumber(row.total)}</td>
-                  <td>{formatNumber(row.average)}</td>
-                  <td>{formatNumber(row.min)}</td>
-                  <td>{formatNumber(row.max)}</td>
-                  <td>
-                    {formatPeriod(row.firstPeriod, row.granularity)} – {formatPeriod(row.lastPeriod, row.granularity)}
-                  </td>
-                  <td className={row.coverage < 1 ? 'warn' : undefined}>{formatPercent(row.coverage)}</td>
+        <>
+          <p className="window-note">
+            Analiz penceresi: <strong>{formatDate(rows[0].windowStart)}</strong> –{' '}
+            <strong>{formatDate(rows[0].windowEnd)}</strong>
+          </p>
+          <div className="table-wrap">
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>Platform</th>
+                  <th>Metrik</th>
+                  <th>Ayrıntı</th>
+                  <th>Dönem sayısı</th>
+                  <th>Toplam</th>
+                  <th>Ortalama</th>
+                  <th>En düşük</th>
+                  <th>En yüksek</th>
+                  <th>Aralık</th>
+                  <th>Kapsama</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((row) => {
+                  const notes = coverageNotes(row)
+                  return (
+                    <tr key={`${row.platform}-${row.metric}-${row.granularity}`}>
+                      <td>{PLATFORM_LABELS[row.platform]}</td>
+                      <td>{METRIC_LABELS[row.metric] ?? row.metric}</td>
+                      <td>{GRANULARITY_LABELS[row.granularity]}</td>
+                      <td>{formatNumber(row.periods)}</td>
+                      <td>{formatNumber(row.total)}</td>
+                      <td>{formatNumber(row.average)}</td>
+                      <td>{formatNumber(row.min)}</td>
+                      <td>{formatNumber(row.max)}</td>
+                      <td>
+                        {formatPeriod(row.firstPeriod, row.granularity)} –{' '}
+                        {formatPeriod(row.lastPeriod, row.granularity)}
+                      </td>
+                      <td>
+                        <div className={row.coverage < 1 ? 'warn' : undefined}>
+                          Aralıkta: {formatPercent(row.coverage)}
+                        </div>
+                        <div className={row.windowCoverage < 1 ? 'info-text' : undefined}>
+                          Pencerede: {formatPercent(row.windowCoverage)}
+                        </div>
+                        {notes.length > 0 && (
+                          <ul className="notes">
+                            {notes.map((note) => (
+                              <li key={note}>{note}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )

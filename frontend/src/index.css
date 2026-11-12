@@ -406,3 +406,38 @@ button.secondary.danger {
   color: var(--danger);
   border-color: var(--danger);
 }
+
+/* ---- Gün 13 eklemeleri ---- */
+.badge-info {
+  background: #1c7ed6;
+  color: #fff;
+}
+
+.window-note {
+  margin: 0;
+}
+
+.notes {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.notes li.warn {
+  color: var(--danger);
+}
+
+.info-text {
+  color: #f59f00;
+  font-weight: 600;
+}
+
+td.missing-cell {
+  color: var(--danger);
+  font-style: italic;
+}
+
+td.partial-cell {
+  color: #f59f00;
+}

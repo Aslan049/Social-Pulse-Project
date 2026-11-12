@@ -1,5 +1,12 @@
-import type { UploadIssue } from '../api/types'
+import type { IssueSeverity, UploadIssue } from '../api/types'
 import { metricLabel } from '../utils/labels'
+
+const SEVERITY_LABELS: Record<IssueSeverity, string> = { ERROR: 'Hata', WARNING: 'Uyarı', INFO: 'Bilgi' }
+const SEVERITY_CLASSES: Record<IssueSeverity, string> = {
+  ERROR: 'badge-error',
+  WARNING: 'badge-warning',
+  INFO: 'badge-info',
+}
 
 export function IssuesTable({ issues }: { issues: UploadIssue[] }) {
   if (issues.length === 0) {
@@ -21,9 +28,7 @@ export function IssuesTable({ issues }: { issues: UploadIssue[] }) {
           {issues.map((issue, index) => (
             <tr key={index}>
               <td>
-                <span className={`badge ${issue.severity === 'ERROR' ? 'badge-error' : 'badge-warning'}`}>
-                  {issue.severity === 'ERROR' ? 'Hata' : 'Uyarı'}
-                </span>
+                <span className={`badge ${SEVERITY_CLASSES[issue.severity]}`}>{SEVERITY_LABELS[issue.severity]}</span>
               </td>
               <td>{issue.sheet ?? '—'}</td>
               <td>{issue.row > 0 ? issue.row : '—'}</td>
