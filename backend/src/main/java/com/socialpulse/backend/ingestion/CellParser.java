@@ -6,7 +6,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -20,6 +24,36 @@ public final class CellParser {
                     "uuuu-MM-dd", "d.M.uuuu", "d/M/uuuu", "uuuu/M/d")
             .map(pattern -> DateTimeFormatter.ofPattern(pattern).withResolverStyle(ResolverStyle.STRICT))
             .toList();
+
+    private static final Pattern YEAR_THEN_MONTH = Pattern.compile("^(\\d{4})[-/.](\\d{1,2})$");
+    private static final Pattern MONTH_THEN_YEAR = Pattern.compile("^(\\d{1,2})[-/.](\\d{4})$");
+    private static final Pattern NAME_THEN_YEAR = Pattern.compile("^(\\p{L}+)\\.?\\s*[-/]?\\s*(\\d{4})$");
+    private static final Pattern YEAR_THEN_NAME = Pattern.compile("^(\\d{4})\\s*[-/]?\\s*(\\p{L}+)\\.?$");
+
+    /** Ay adları (Türkçe ve İngilizce, tam ve kısa), MetricAliases.normalize ile normalize edilmiş anahtarlarla. */
+    private static final Map<String, Integer> MONTH_NAMES = new HashMap<>();
+
+    static {
+        String[][] names = {
+                {"ocak", "oca", "january", "jan"},
+                {"subat", "sub", "february", "feb"},
+                {"mart", "mar", "march"},
+                {"nisan", "nis", "april", "apr"},
+                {"mayis", "may"},
+                {"haziran", "haz", "june", "jun"},
+                {"temmuz", "tem", "july", "jul"},
+                {"agustos", "agu", "august", "aug"},
+                {"eylul", "eyl", "september", "sep", "sept"},
+                {"ekim", "eki", "october", "oct"},
+                {"kasim", "kas", "november", "nov"},
+                {"aralik", "ara", "december", "dec"}
+        };
+        for (int i = 0; i < names.length; i++) {
+            for (String name : names[i]) {
+                MONTH_NAMES.put(name, i + 1);
+            }
+        }
+    }
 
     private static final BigDecimal MAX_ABS = new BigDecimal("1E16");
 
@@ -48,6 +82,57 @@ public final class CellParser {
             throw new IllegalArgumentException("Geçersiz tarih: " + shorten(text));
         }
         throw new IllegalArgumentException(cell == null ? "Tarih boş" : "Geçersiz tarih");
+    }
+
+    /**
+     * Bir ayı, ayın ilk günü olarak döner. Excel tarih hücrelerini, "2025-10", "10.2025", "10/2025",
+     * "Ekim 2025", "Oct 2025" gibi metinleri ve tam tarihleri kabul eder.
+     */
+    public static LocalDate toMonth(Object cell) {
+        if (cell instanceof LocalDateTime dateTime) {
+            return dateTime.toLocalDate().withDayOfMonth(1);
+        }
+        if (cell instanceof LocalDate date) {
+            return date.withDayOfMonth(1);
+        }
+        if (cell instanceof String text) {
+            String t = text.trim();
+            Matcher m = YEAR_THEN_MONTH.matcher(t);
+            if (m.matches()) {
+                return monthOf(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)), text);
+            }
+            m = MONTH_THEN_YEAR.matcher(t);
+            if (m.matches()) {
+                return monthOf(Integer.parseInt(m.group(2)), Integer.parseInt(m.group(1)), text);
+            }
+            m = NAME_THEN_YEAR.matcher(t);
+            if (m.matches()) {
+                Integer month = MONTH_NAMES.get(MetricAliases.normalize(m.group(1)));
+                if (month != null) {
+                    return monthOf(Integer.parseInt(m.group(2)), month, text);
+                }
+            }
+            m = YEAR_THEN_NAME.matcher(t);
+            if (m.matches()) {
+                Integer month = MONTH_NAMES.get(MetricAliases.normalize(m.group(2)));
+                if (month != null) {
+                    return monthOf(Integer.parseInt(m.group(1)), month, text);
+                }
+            }
+            try {
+                return toDate(t).withDayOfMonth(1);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Geçersiz ay: " + shorten(text));
+            }
+        }
+        throw new IllegalArgumentException(cell == null ? "Ay boş" : "Geçersiz ay");
+    }
+
+    private static LocalDate monthOf(int year, int month, String original) {
+        if (month < 1 || month > 12 || year < 1900 || year > 2100) {
+            throw new IllegalArgumentException("Geçersiz ay: " + shorten(original));
+        }
+        return LocalDate.of(year, month, 1);
     }
 
     /** Boş veya "-" ise null (değer yok), geçersizse IllegalArgumentException. */

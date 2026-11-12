@@ -40,7 +40,7 @@ public class UploadService {
 
     /**
      * Dosyayı doğrular, ham tablolara okur ve platformun adaptörü varsa metrikleri ortak modele
-     * çevirip kaydeder. Adaptörü olmayan platformda (Gün 7'ye kadar X) yalnızca okunur ve kayıt
+     * çevirip kaydeder. Adaptörü olmayan bir platformda yalnızca okunur ve kayıt
      * RECEIVED durumunda kalır. Her şey tek işlemdedir: hata olursa hiçbir şey kaydedilmez.
      * Dosyanın kendisi saklanmaz.
      */
@@ -83,6 +83,7 @@ public class UploadService {
         batchRepository.saveAndFlush(batch);
 
         List<String> ignoredSheets = List.of();
+        List<String> ignoredColumns = List.of();
         List<UploadIssue> issues = List.of();
         if (result != null) {
             int imported = metricPointWriter.upsertAll(userId, batch.getId(), platform, result.points());
@@ -90,6 +91,7 @@ public class UploadService {
             batch.setStatus(UploadStatus.COMPLETED);
             batchRepository.saveAndFlush(batch);
             ignoredSheets = result.ignoredSheets();
+            ignoredColumns = result.ignoredColumns();
             issues = result.issues().stream()
                     .limit(MAX_ISSUES_IN_RESPONSE)
                     .map(i -> new UploadIssue(i.sheet(), i.row(), i.message()))
@@ -99,7 +101,7 @@ public class UploadService {
         List<SheetSummary> sheets = tables.stream()
                 .map(t -> new SheetSummary(t.name(), t.rowCount(), t.columnCount(), t.headerPreview()))
                 .toList();
-        return UploadResponse.of(batch, sheets, ignoredSheets, issues);
+        return UploadResponse.of(batch, sheets, ignoredSheets, ignoredColumns, issues);
     }
 
     private static String firstIssueText(ParseResult result) {
