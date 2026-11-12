@@ -74,6 +74,18 @@ public class CsvTabularReader implements TabularReader {
         return List.of(new RawTable("CSV", rows));
     }
 
+    @Override
+    public List<RawTable> read(InputStream in, String filename) {
+        String name = baseName(filename);
+        return read(in).stream().map(table -> new RawTable(name, table.rows())).toList();
+    }
+
+    private static String baseName(String filename) {
+        int dot = filename.lastIndexOf('.');
+        String name = dot > 0 ? filename.substring(0, dot) : filename;
+        return name.isBlank() ? "CSV" : name.trim();
+    }
+
     private static String decode(byte[] bytes) {
         if (bytes.length >= 2 && (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xFE) {
             return new String(bytes, 2, bytes.length - 2, StandardCharsets.UTF_16LE);

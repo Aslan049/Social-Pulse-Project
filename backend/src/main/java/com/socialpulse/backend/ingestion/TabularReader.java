@@ -12,4 +12,12 @@ public interface TabularReader {
 
     /** Okunamayan veya bozuk dosyada InvalidUploadException fırlatır. */
     List<RawTable> read(InputStream in);
+
+    /**
+     * Dosya adını da bilen okuma. CSV'de sayfa kavramı olmadığından tablo adı dosya adından
+     * (uzantısız) türetilir; böylece "ziyaretler.csv" iki sütunlu bir dosyanın metriğini belirtebilir.
+     */
+    default List<RawTable> read(InputStream in, String filename) {
+        return read(in);
+    }
 }

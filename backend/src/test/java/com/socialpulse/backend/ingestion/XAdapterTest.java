@@ -165,14 +165,33 @@ class XAdapterTest {
         assertTrue(result.issues().get(0).message().startsWith("Günlük veri gibi"));
     }
 
+    private static List<List<Object>> dailyLongRows() {
+        List<List<Object>> rows = new ArrayList<>();
+        rows.add(row("Tarih", "Değer"));
+        for (int d = 0; d < 40; d++) {
+            rows.add(row(LocalDate.of(2025, 10, 1).plusDays(d).atStartOfDay(), (double) (d + 1)));
+        }
+        return rows;
+    }
+
     @Test
-    void onlyDailyOrUnrelatedSheets_failWithHelpfulMessage() {
+    void onlyDailyOrDerivedSheets_failWithHelpfulMessage() {
         InvalidUploadException ex = assertThrows(InvalidUploadException.class, () -> adapter.parse(List.of(
-                table("Ziyaretler", row("Tarih", "Değer"), row(month(2025, 10), 1.0)),
+                new RawTable("Ziyaretler", dailyLongRows()),
                 dailyTable())));
 
         assertTrue(ex.getMessage().contains("Ziyaretler"));
         assertTrue(ex.getMessage().contains("Tüm Veriler"));
+    }
+
+    @Test
+    void monthlyLongSheetNamedAfterMetric_isAccepted() {
+        ParseResult result = adapter.parse(List.of(
+                table("goruntulenmeler", row("Ay", "Değer"), row("Ekim 2025", "100"), row("Kasım 2025", "200"))));
+
+        assertEquals(2, result.points().size());
+        assertEquals(Metric.VIEWS, result.points().get(0).metric());
+        assertEquals(Granularity.MONTH, result.points().get(0).granularity());
     }
 
     @Test
